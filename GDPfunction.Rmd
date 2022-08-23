@@ -1,0 +1,137 @@
+---
+title: "GDP function"      
+author: "A. Mathot"        
+output: 
+  flexdashboard::flex_dashboard:
+    theme: united
+runtime: shiny               
+--- 
+
+  
+```{r packages, include=FALSE}
+require(ggplot2)
+require(plotly)
+require(shiny)
+require(kableExtra)
+require(knitr)
+require(readxl)
+theme_set(theme_bw())
+library(dplyr)
+library(tidyr)
+library(pandocfilters)
+```
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  tidy    = "styler",
+  comment = NA, 
+  echo = FALSE
+)
+```
+
+
+```{r}
+data <- read.csv(file = "Data.csv", header = TRUE, sep = "\t",dec =",",row.names =1)
+```
+
+# Structure of Data:
+## {.sidebar} 
+
+<br>
+
+---
+
+```{r}
+renderUI({
+  sliderInput("range",   
+    label = "Rows to display",  
+    value = 25,
+    min = 1, max = nrow(data),
+    step = 1)
+}
+)
+
+```
+---
+
+##
+
+###
+
+<br>
+
+```{r}
+renderTable({data}, rownames = TRUE)
+```
+
+
+
+# Static graph:
+## {.sidebar}
+
+<br>
+
+---
+
+```{r}
+Nbr = c(1:267)
+Pays = c(row.names(data))
+Data <- data.frame(x = Nbr, y = Pays)
+Data |>
+  knitr::kable(
+    caption = "Number to choose for the value of a for the chosen Country", col.names = c("a value", "Country"))
+
+```
+
+```{r}
+rmarkdown::paged_table(Data)
+```
+
+---
+
+##
+
+###
+
+
+
+```{r}
+y <- data[18,]
+x <- as.numeric(data[267,1:62])
+Y <- as.numeric(y[1, 1:62])
+Data = data.frame(x, Y)
+Country1 <- ggplot(Data, aes(x = x, y = Y)) + 
+  geom_line(color = "red")+
+  labs(title = "Gdp of Belgium over years", x = "Years", y = "Gdp")
+Country1
+```
+
+# Display the chosen country:
+```{r}
+data <- read.csv(file = "Data.csv", header = TRUE, sep = "\t",dec =",",row.names =1)
+
+Nombre = c(1:267)
+Pays = c(row.names(data))
+Data1 <- data.frame(x = Nombre, y = Pays)
+```
+
+```{r}
+sliderInput(
+    inputId = "nbr",               
+    label = "Choose a country",    
+    value = 18,  
+    min = 1,
+    max = 267,
+    step = 1        
+  )
+```
+
+```{r}
+renderPlot({
+    nbre <- input$nbr
+    Frame <- data.frame(x = c(as.numeric(data[267,1:62])), y = c(as.numeric(data[nbre, 1:62])))
+    ggplot(data = Frame, aes(x = x, y = y)) + 
+      geom_line(color = "red")+
+      labs(title = paste('Evolution of the gdp of',Data1[nbre,2], '.'), y = "GDP",x = "Years")
+    })
+```
